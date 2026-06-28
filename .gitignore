@@ -1,1 +1,35 @@
-.vercel
+# Dependency directories
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Database (opsional, kalau mau ignore)
+# database/*.json
+# !database/settings.js
+# !database/github.js
+
+# Temporary files
+*.tmp
+*.temp
