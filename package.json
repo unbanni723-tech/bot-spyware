@@ -1,0 +1,21 @@
+{
+  "name": "spy-link-bot",
+  "version": "1.0.0",
+  "description": "Veztx Spy Bot",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "web": "node api.js",
+    "dev": "nodemon bot.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "chalk": "^4.1.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.0",
+    "node-telegram-bot-api": "^0.61.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  }
+}
